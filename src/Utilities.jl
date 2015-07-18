@@ -11,7 +11,6 @@ end
 
 function reddit_revoke!(cred)
     enc = bytestring(encode(Base64, cred.user*":"*cred.pass))
-    @show UserAgent
     post(URI("https://www.reddit.com/api/v1/revoke_token"),
                "token=$(cred.token)&token_type_hint=access_token";
                headers = Dict("Authorization" => "Basic $enc",
@@ -21,7 +20,6 @@ end
 
 function reddit_token!(cred)
     enc = bytestring(encode(Base64, cred.user*":"*cred.pass))
-    @show UserAgent
     respons = post(URI("https://www.reddit.com/api/v1/access_token"),
                    "grant_type=password&username=$(cred.user)&password=$(cred.pass)";
                    headers = Dict("Authorization" => "Basic $enc",
