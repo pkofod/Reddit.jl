@@ -1,12 +1,13 @@
 type CRED
     user::String
     pass::String
-    consumer_key::String
-    consumer_secret::String
+    personal::String
+    secret::String
     token::String
 end
 
-CRED(key, secret, user, pass) = CRED(key, secret, user, pass, "")
+CRED(user, pass, personal, secret) = CRED(user, pass, personal, secret, "")
+CRED(user, personal, secret) = CRED(user, chomp(readline()), personal, secret, "")
 
 type Subreddit
 	name::String

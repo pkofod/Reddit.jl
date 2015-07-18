@@ -1,17 +1,18 @@
-function reddit_init(UserAgent::String)
-    UserAgent
-end
-
-function reddit_cred(consumer_key::String, consumer_secret::String, oauth_token::String, oauth_secret::String)
+function reddit_cred(user::String, pass::String, personal::String, secret::String)
     global cred
 
-    return cred = CRED(consumer_key, consumer_secret, user, pass)
+    return cred = CRED(user, pass, personal, secret)
+
+end
+function reddit_cred(user::String, personal::String, secret::String)
+    global cred
+
+    return cred = CRED(user, personal, secret)
 
 end
 
 function reddit_revoke!(cred)
-    enc = bytestring(encode(Base64, cred.user*":"*cred.pass))
-    @show UserAgent
+    enc = bytestring(encode(Base64, cred.personal*":"*cred.secret))
     post(URI("https://www.reddit.com/api/v1/revoke_token"),
                "token=$(cred.token)&token_type_hint=access_token";
                headers = Dict("Authorization" => "Basic $enc",
@@ -20,8 +21,7 @@ function reddit_revoke!(cred)
 end
 
 function reddit_token!(cred)
-    enc = bytestring(encode(Base64, cred.user*":"*cred.pass))
-    @show UserAgent
+    enc = bytestring(encode(Base64, cred.personal*":"*cred.secret))
     respons = post(URI("https://www.reddit.com/api/v1/access_token"),
                    "grant_type=password&username=$(cred.user)&password=$(cred.pass)";
                    headers = Dict("Authorization" => "Basic $enc",
