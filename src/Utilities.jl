@@ -1,15 +1,12 @@
 function cred(user::String, pass::String, personal::String, secret::String)
-    global cred
-
     return cred = CRED(user, pass, personal, secret)
-
 end
+
 function cred(user::String, personal::String, secret::String)
-    global cred
-
     return cred = CRED(user, personal, secret)
-
 end
+
+# Should remove the stuff above
 
 function revoke!(cred::CRED)
     enc = bytestring(encode(Base64, cred.personal*":"*cred.secret))
@@ -30,6 +27,24 @@ function get_token!(cred)
 
     cred.token = JSON.parse(respons.data)["access_token"]
 end
+
+#=
+macro sorting(sort)
+    quote
+        function $(esc(sort))(name, cred)
+            sub = Subreddit(name, $(string(sort)), String[], Response[], 0)
+            push!(sub.responses, get(URI(string("https://oauth.reddit.com/r/$name/", $(string(sort)), "/.json"));
+                           headers = Dict("Authorization" => "bearer $(cred.token)",
+                                          "User-Agent"    => "RedditAPI/0.1 by pkofod")))
+            ids, sub.count = unique(sub)
+            sub
+        end
+    end
+end
+
+@sorting new
+@sorting hot
+=#
 
 
 function get_new(name, cred)
@@ -85,6 +100,7 @@ function get_gilded(name, cred)
     ids, sub.count = unique(sub)
     sub
 end
+
 
 function get_next!(sub, cred)
     push!(sub.responses, get(URI("https://oauth.reddit.com/r/$(sub.name)/$(sub.sorting)/.json?count=$(sub.count)&after=$(JSON.parse(sub.responses[end].data)["data"]["after"])");
