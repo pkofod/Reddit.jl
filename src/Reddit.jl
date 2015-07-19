@@ -8,8 +8,8 @@ using Requests, DataFrames, Codecs, JSON
 import Requests: get, post
 import Requests: Response
 import Base: unique
-export get_token!, cred, get_new, get_hot, get_gilded, get_controversial,
-	   get_top, get_rising, revoke!, get_next!, get_all!, Subreddit, new, hot,
+export token!, cred, new, hot, gilded, controversial,
+	   top, rising, revoke!, next!, get_all!, Subreddit,
 	   @sorting
 
 include("./Types.jl")

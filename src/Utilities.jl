@@ -17,7 +17,7 @@ function revoke!(cred::CRED)
                	              "Content-Type"  => "application/x-www-form-urlencoded"))
 end
 
-function get_token!(cred)
+function token!(cred)
     enc = bytestring(encode(Base64, cred.personal*":"*cred.secret))
     respons = post(URI("https://www.reddit.com/api/v1/access_token"),
                    "grant_type=password&username=$(cred.user)&password=$(cred.pass)";
@@ -28,7 +28,6 @@ function get_token!(cred)
     cred.token = JSON.parse(respons.data)["access_token"]
 end
 
-#=
 macro sorting(sort)
     quote
         function $(esc(sort))(name, cred)
@@ -44,65 +43,12 @@ end
 
 @sorting new
 @sorting hot
-=#
+@sorting rising
+@sorting controversial
+@sorting top
+@sorting gilded
 
-
-function get_new(name, cred)
-    sub = Subreddit(name,"new", String[],  Response[], 0)
-    push!(sub.responses, get(URI("https://oauth.reddit.com/r/$name/new/.json");
-                   headers = Dict("Authorization" => "bearer $(cred.token)",
-                                  "User-Agent"    => "RedditAPI/0.1 by pkofod")))
-    ids, sub.count = unique(sub)
-    sub
-end
-
-function get_hot(name, cred)
-    sub = Subreddit(name, "hot", String[], Response[], 0)
-    push!(sub.responses, get(URI("https://oauth.reddit.com/r/$name/hot/.json");
-                   headers = Dict("Authorization" => "bearer $(cred.token)",
-                                  "User-Agent"    => "RedditAPI/0.1 by pkofod")))
-    ids, sub.count = unique(sub)
-    sub
-end
-
-function get_rising(name, cred)
-    sub = Subreddit(name, "rising", String[], Response[], 0)
-    push!(sub.responses, get(URI("https://oauth.reddit.com/r/$name/rising/.json");
-                   headers = Dict("Authorization" => "bearer $(cred.token)",
-                                  "User-Agent"    => "RedditAPI/0.1 by pkofod")))
-    ids, sub.count = unique(sub)
-    sub
-end
-
-function get_controversial(name, cred)
-    sub = Subreddit(name, "controversial", String[], Response[], 0)
-    push!(sub.responses, get(URI("https://oauth.reddit.com/r/$name/controversial/.json");
-                   headers = Dict("Authorization" => "bearer $(cred.token)",
-                                  "User-Agent"    => "RedditAPI/0.1 by pkofod")))
-    ids, sub.count = unique(sub)
-    sub
-end
-
-function get_top(name, cred)
-    sub = Subreddit(name, "top", String[], Response[], 0)
-    push!(sub.responses, get(URI("https://oauth.reddit.com/r/$name/top/.json");
-                   headers = Dict("Authorization" => "bearer $(cred.token)",
-                                  "User-Agent"    => "RedditAPI/0.1 by pkofod")))
-    ids, sub.count = unique(sub)
-    sub
-end
-
-function get_gilded(name, cred)
-    sub = Subreddit(name, "gilded", String[], Response[], 0)
-    push!(sub.responses, get(URI("https://oauth.reddit.com/r/$name/gilded/.json");
-                   headers = Dict("Authorization" => "bearer $(cred.token)",
-                                  "User-Agent"    => "RedditAPI/0.1 by pkofod")))
-    ids, sub.count = unique(sub)
-    sub
-end
-
-
-function get_next!(sub, cred)
+function next!(sub, cred)
     push!(sub.responses, get(URI("https://oauth.reddit.com/r/$(sub.name)/$(sub.sorting)/.json?count=$(sub.count)&after=$(JSON.parse(sub.responses[end].data)["data"]["after"])");
                    headers = Dict("Authorization" => "bearer $(cred.token)",
                                   "User-Agent"    => "RedditAPI/0.1 by pkofod",
@@ -111,7 +57,7 @@ function get_next!(sub, cred)
     sub.ids, sub.count = unique(sub)
 end
 
-function get_all!(sub, cred)
+function get_all!(sub, cred::CRED)
 
     for i = 1:50
       if sub.count < length(sub.responses)
@@ -119,7 +65,7 @@ function get_all!(sub, cred)
       end
 
       sleep(2)
-      get_next!(sub, cred)
+      next!(sub, cred)
     end
 end
 
